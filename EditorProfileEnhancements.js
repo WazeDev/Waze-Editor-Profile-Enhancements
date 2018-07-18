@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Waze Editor Profile Enhancements
 // @namespace    http://tampermonkey.net/
-// @version      2018.07.15.01
+// @version      2018.07.17.01
 // @description  Pulls the correct forum post count - changed to red to signify the value as pulled from the forum by the script
 // @author       JustinS83
 // @include      https://www.waze.com/*user/editor*
@@ -15,6 +15,7 @@
     var nawkts, rowwkts, ilwkts = [];
     var combinedNAWKT, combinedROWWKT, combinedILWKT= "";
     var naMA, rowMA, ilMA;
+    const reducer = (accumulator, currentValue) => accumulator + currentValue;
 
     function bootstrap(tries) {
         tries = tries || 1;
@@ -148,6 +149,81 @@
                 else
                     $('#wpeWKT').css({'visibility': 'visible'});
             });
+        }
+
+        /**************  Add Average & Total to Editing Activity ***********/
+        AddEditingActivityAvgandTot();
+
+        AddEditorProgressTracking();
+    }
+
+    function AddEditorProgressTracking(){
+        let edits = W.EditorProfile.data.edits
+        let editActivity = [].concat(W.EditorProfile.data.editingActivity);
+        let rank = W.EditorProfile.data.rank+1;
+        let count = 0;
+        editActivity.forEach(function(x) {if(x !== 0) count++; });
+        let editAverageDaily = Math.round(editActivity.reduce(reducer)/count);
+
+        var $editorProgress = $("<div>");
+        $editorProgress.html([
+            '<div>',
+            '<div class="editor-progress-item">',
+            '<h4>Average Edits per Day</h4></div><div class="editor-progress__count">' + editAverageDaily,
+            '</div></div>',
+            '<div class="editor-progress-list" style="display:flex; flex-flow:row wrap; justify-content:space-around;">',
+            buildProgressItemsHTML()
+        ].join(' '));
+
+        $('#editing-activity').append('<div id="editor-progress"></div>');
+        $('#editor-progress').append('<h3>Editing Stats</h3>');
+        $('#editor-progress').append($editorProgress.html()+'</div>');
+    }
+
+    function buildProgressItemsHTML(){
+        var itemsArr = [];
+        var $items = $("<div>");
+        let editActivity = W.EditorProfile.data.editingActivity;
+
+        //loop over the 13 tracked weeks on the profile
+        for(let i=0; i<13; i++){
+            let header = "";
+            let weekEditCount = 0;
+            //let weekEditPct = 0;
+            if(i==0){
+                header = "Past 7 days";
+                weekEditCount = editActivity.slice(-7).reduce(reducer);
+            }
+            else{
+                header = `Past ${i*7+1} - ${(i+1)*7} days`;
+                weekEditCount = editActivity.slice(-((i+1)*7),-i*7).reduce(reducer);
+            }
+            let weekDailyAvg = Math.round(weekEditCount/7*100)/100;
+            itemsArr.push('<div style="margin-right:20px;">');
+            itemsArr.push(`<h4>${header}</h4>`);
+            itemsArr.push('<div class="editor-progress-item">');
+            itemsArr.push(`<div class="editor-progress__name">Week\'s Edits</div><div class="editor-progress__count">${weekEditCount}</div>`); //, ${weekEditPct}%</div>`);
+            itemsArr.push(`<div class="editor-progress__name">Average Edits/Day</div><div class="editor-progress__count">${weekDailyAvg}</div>`);
+            itemsArr.push('</div></div>');
+        }
+        $items.html(itemsArr.join(' '));
+        return $items.html();
+    }
+
+    function AddEditingActivityAvgandTot(){
+        $('.legend').append('<div class="day-initial">Avg</div> <div class="day-initial">Tot</div>');
+        $('.editing-activity').css({"width":"1010px"}); //With adding the Avg and Tot rows we have to widen the div a little so it doesn't wrap one of the columns
+
+        let currWeekday = new Date().getDay();
+        let localEditActivity = [].concat(W.EditorProfile.data.editingActivity);
+        let weekEditsArr = localEditActivity.splice(-currWeekday);
+        let weekEditsCount = weekEditsArr.reduce(reducer);
+        $('.weeks div:nth-child(14) .week').append(`<div class="day" style="font-size:10px; height:10px; text-align:center; margin-top:-5px;" title="Average edits per day for this week">${weekEditsCount/currWeekday}</div><div style="font-size:10px; height:10px; text-align:center;" title="Total edits for this week">${weekEditsCount}</div>`);
+        for(let i=13; i>0; i--){
+            weekEditsArr = localEditActivity.splice(-7);
+            weekEditsCount = weekEditsArr.splice(-7).reduce(reducer);
+            let avg = Math.round(weekEditsCount/7 * 100) / 100;
+            $(`.weeks div:nth-child(${i}) .week`).append(`<div class="day" style="font-size:10px; height:10px; text-align:center; margin-top:-5px;" title="Average edits per day for this week">${avg}</div><div style="font-size:10px; height:10px; text-align:center;" title="Total edits for this week">${weekEditsCount}</div>`);
         }
     }
 
