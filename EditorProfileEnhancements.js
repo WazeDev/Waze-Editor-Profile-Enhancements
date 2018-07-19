@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Waze Editor Profile Enhancements
 // @namespace    http://tampermonkey.net/
-// @version      2018.07.17.01
+// @version      2018.07.18.01
 // @description  Pulls the correct forum post count - changed to red to signify the value as pulled from the forum by the script
 // @author       JustinS83
 // @include      https://www.waze.com/*user/editor*
@@ -32,6 +32,12 @@
     bootstrap();
 
     async function init(){
+        $('body').append('<span id="ruler" style="visibility:hidden; white-space:nowrap;"></span>');
+        String.prototype.visualLength = function(){
+            var ruler = $("#ruler");
+            ruler[0].innerHTML = this;
+            return ruler[0].offsetWidth;
+        }
         $.get('https://www.waze.com/forum/memberlist.php?username=' + W.EditorProfile.data.username, function(forumResult){
             var re = 0;
             var matches = forumResult.match(/<a.*?"Search user’s posts">(\d+)<\/a>/);
@@ -59,8 +65,60 @@
 
         await getManagedAreas();
 
+        BuildManagedAreasWKTInterface();
+
+        /**************  Add Average & Total to Editing Activity ***********/
+        AddEditingActivityAvgandTot();
+
+        AddEditorProgressTracking();
+
+        var observer = new MutationObserver(function(mutations) {
+               mutations.forEach(function(mutation) {
+                   if ($(mutation.target).hasClass('leaflet-map-pane') && (mutation.attributeName === "class" || mutation.attributeName === "style")){
+                       if(mutation.attributeName === "class" && mutation.target.classList.length == 1) //zoom has ended, we can redraw our labels
+                           setTimeout(AddLabelsToAreas, 200);
+                       else if(mutation.attributeName === "style") //panning the map
+                           setTimeout(AddLabelsToAreas, 200);
+                   }
+               });
+           });
+
+        observer.observe(document.getElementsByClassName('component-map-view')[0], { childList: true, subtree: true, attributes:true });
+    }
+
+    function AddLabelsToAreas(){
+        $('svg.leaflet-zoom-animated g > text').remove();
+        var svg = $('svg.leaflet-zoom-animated')[0];
+        var pt = svg.createSVGPoint(), svgP;
+
+        let displayedAreas = $('svg.leaflet-zoom-animated g');
+
+        for(let i=0;i<displayedAreas.length;i++){
+            let windowPosition = $(displayedAreas[i])[0].getBoundingClientRect();
+            pt.x = (windowPosition.left + windowPosition.right) / 2;
+            pt.y = (windowPosition.top + windowPosition.bottom) / 2;
+            svgP = pt.matrixTransform(svg.getScreenCTM().inverse());
+
+            if(svgP.x != 0 && svgP.y != 0){
+                debugger;
+                var newText = document.createElementNS("http://www.w3.org/2000/svg","text");
+                newText.setAttributeNS(null,"x",svgP.x - (`Area ${i+1}`.visualLength() /2));
+                newText.setAttributeNS(null,"y",svgP.y);
+                newText.setAttributeNS(null, "fill", "red");
+                newText.setAttributeNS(null,"font-size","12");
+
+                var textNode = document.createTextNode(`Area ${i+1}`);
+                newText.appendChild(textNode);
+                $(displayedAreas[i])[0].appendChild(newText);
+            }
+        }
+    }
+
+    function BuildManagedAreasWKTInterface(){
         if(naMA.managedAreas.length > 0 || rowMA.managedAreas.length > 0 || ilMA.managedAreas.length > 0){
             $('#header > div > div.user-info > div > div.user-highlights > a').append('<a href="#" title="View editor\'s managed areas in WKT format"><button class="message s-modern-button s-modern" id="userMA"><i class="fa fa-map-o" aria-hidden="true"></i></button></a>');
+
+            AddLabelsToAreas();
 
             $('#userMA').click(function(){
                 if($('#wpeWKT').css('visibility') === 'visible')
@@ -150,11 +208,6 @@
                     $('#wpeWKT').css({'visibility': 'visible'});
             });
         }
-
-        /**************  Add Average & Total to Editing Activity ***********/
-        AddEditingActivityAvgandTot();
-
-        AddEditorProgressTracking();
     }
 
     function AddEditorProgressTracking(){
