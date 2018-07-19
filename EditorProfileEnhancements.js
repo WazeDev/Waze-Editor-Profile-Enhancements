@@ -1,25 +1,25 @@
 // ==UserScript==
 // @name         Waze Editor Profile Enhancements
 // @namespace    http://tampermonkey.net/
-// @version      2018.07.18.01
+// @version      2018.07.19.01
 // @description  Pulls the correct forum post count - changed to red to signify the value as pulled from the forum by the script
 // @author       JustinS83
 // @include      https://www.waze.com/*user/editor*
 // @include      https://beta.waze.com/*user/editor*
 // @grant        GM_xmlhttpRequest
+// @require      https://code.jquery.com/ui/1.12.1/jquery-ui.js
 // ==/UserScript==
 
 (function() {
     'use strict';
 
+    var settings = {};
     var nawkts, rowwkts, ilwkts = [];
     var combinedNAWKT, combinedROWWKT, combinedILWKT= "";
     var naMA, rowMA, ilMA;
     const reducer = (accumulator, currentValue) => accumulator + currentValue;
 
-    function bootstrap(tries) {
-        tries = tries || 1;
-
+    function bootstrap(tries = 1) {
         if (W &&
             W.EditorProfile &&
             $) {
@@ -33,7 +33,9 @@
 
     async function init(){
         $('body').append('<span id="ruler" style="visibility:hidden; white-space:nowrap;"></span>');
-        String.prototype.visualLength = function(){
+        //injectCSS();
+        loadSettings();
+        String.prototype.visualLength = function(){ //measures the visual length of a string so we can better center the area labels on the areas
             var ruler = $("#ruler");
             ruler[0].innerHTML = this;
             return ruler[0].offsetWidth;
@@ -64,26 +66,11 @@
         $('#editing-activity > div > h3').append(" (" + count + " of last 91 days)");
 
         await getManagedAreas();
-
         BuildManagedAreasWKTInterface();
-
         /**************  Add Average & Total to Editing Activity ***********/
         AddEditingActivityAvgandTot();
-
-        AddEditorProgressTracking();
-
-        var observer = new MutationObserver(function(mutations) {
-               mutations.forEach(function(mutation) {
-                   if ($(mutation.target).hasClass('leaflet-map-pane') && (mutation.attributeName === "class" || mutation.attributeName === "style")){
-                       if(mutation.attributeName === "class" && mutation.target.classList.length == 1) //zoom has ended, we can redraw our labels
-                           setTimeout(AddLabelsToAreas, 200);
-                       else if(mutation.attributeName === "style") //panning the map
-                           setTimeout(AddLabelsToAreas, 200);
-                   }
-               });
-           });
-
-        observer.observe(document.getElementsByClassName('component-map-view')[0], { childList: true, subtree: true, attributes:true });
+        /************** Add Editor Stats Section **************/
+        AddEditorStatsSection();
     }
 
     function AddLabelsToAreas(){
@@ -100,7 +87,6 @@
             svgP = pt.matrixTransform(svg.getScreenCTM().inverse());
 
             if(svgP.x != 0 && svgP.y != 0){
-                debugger;
                 var newText = document.createElementNS("http://www.w3.org/2000/svg","text");
                 newText.setAttributeNS(null,"x",svgP.x - (`Area ${i+1}`.visualLength() /2));
                 newText.setAttributeNS(null,"y",svgP.y);
@@ -117,6 +103,19 @@
     function BuildManagedAreasWKTInterface(){
         if(naMA.managedAreas.length > 0 || rowMA.managedAreas.length > 0 || ilMA.managedAreas.length > 0){
             $('#header > div > div.user-info > div > div.user-highlights > a').append('<a href="#" title="View editor\'s managed areas in WKT format"><button class="message s-modern-button s-modern" id="userMA"><i class="fa fa-map-o" aria-hidden="true"></i></button></a>');
+
+            /****** MO to update labels when panning/zooming the map ************/
+            var observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    if ($(mutation.target).hasClass('leaflet-map-pane') && (mutation.attributeName === "class" || mutation.attributeName === "style")){
+                        if(mutation.attributeName === "class" && mutation.target.classList.length == 1) //zoom has ended, we can redraw our labels
+                            setTimeout(AddLabelsToAreas, 200);
+                        else if(mutation.attributeName === "style") //panning the map
+                            setTimeout(AddLabelsToAreas, 200);
+                    }
+                });
+            });
+            observer.observe(document.getElementsByClassName('component-map-view')[0], { childList: true, subtree: true, attributes:true });
 
             AddLabelsToAreas();
 
@@ -210,7 +209,7 @@
         }
     }
 
-    function AddEditorProgressTracking(){
+    function AddEditorStatsSection(){
         let edits = W.EditorProfile.data.edits
         let editActivity = [].concat(W.EditorProfile.data.editingActivity);
         let rank = W.EditorProfile.data.rank+1;
@@ -220,17 +219,24 @@
 
         var $editorProgress = $("<div>");
         $editorProgress.html([
+            `<div id="collapsible" style="display:${settings.EditingStatsExpanded ? "block" : "none"};">`,
             '<div>',
             '<div class="editor-progress-item">',
             '<h4>Average Edits per Day</h4></div><div class="editor-progress__count">' + editAverageDaily,
             '</div></div>',
             '<div class="editor-progress-list" style="display:flex; flex-flow:row wrap; justify-content:space-around;">',
-            buildProgressItemsHTML()
+            buildProgressItemsHTML(),
+            '</div>'
         ].join(' '));
 
-        $('#editing-activity').append('<div id="editor-progress"></div>');
-        $('#editor-progress').append('<h3>Editing Stats</h3>');
+        $('#editing-activity').append('<div id="editor-progress"><h3 id="collapseHeader" style="cursor:pointer;">Editing Stats</h3></div>');
         $('#editor-progress').append($editorProgress.html()+'</div>');
+
+        $('#collapseHeader').click(function(){
+            $('#collapsible').toggle();
+            settings.EditingStatsExpanded = ($('#collapsible').css("display") === "block");
+            saveSettings();
+        });
     }
 
     function buildProgressItemsHTML(){
@@ -342,5 +348,33 @@
                 lastEditEnv: 'na',
                 userId: W.EditorProfile.data.userID
             }).fetch();*/
+    }
+
+    function injectCSS() {
+        /*var css =  [
+            ].join(' ');
+        $('<style type="text/css">' + css + '</style>').appendTo('head');*/
+    }
+
+    function loadSettings() {
+        var loadedSettings = $.parseJSON(localStorage.getItem("WEPE_Settings"));
+        var defaultSettings = {
+            EditingStatsExpanded: true
+        };
+        settings = loadedSettings ? loadedSettings : defaultSettings;
+        for (var prop in defaultSettings) {
+            if (!settings.hasOwnProperty(prop))
+                settings[prop] = defaultSettings[prop];
+        }
+    }
+
+     function saveSettings() {
+        if (localStorage) {
+            var localsettings = {
+                EditingStatsExpanded: settings.EditingStatsExpanded,
+            };
+
+            localStorage.setItem("WEPE_Settings", JSON.stringify(localsettings));
+        }
     }
 })();
