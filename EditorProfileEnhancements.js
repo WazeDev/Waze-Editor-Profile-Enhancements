@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Waze Editor Profile Enhancements
 // @namespace    http://tampermonkey.net/
-// @version      2018.07.19.01
+// @version      2018.07.19.02
 // @description  Pulls the correct forum post count - changed to red to signify the value as pulled from the forum by the script
 // @author       JustinS83
 // @include      https://www.waze.com/*user/editor*
@@ -215,15 +215,14 @@
         let rank = W.EditorProfile.data.rank+1;
         let count = 0;
         editActivity.forEach(function(x) {if(x !== 0) count++; });
-        let editAverageDaily = Math.round(editActivity.reduce(reducer)/count);
+        let editAverageDailyActive = Math.round(editActivity.reduce(reducer)/count);
+        let editAverageDaily = Math.round(editActivity.reduce(reducer)/91);
 
         var $editorProgress = $("<div>");
         $editorProgress.html([
             `<div id="collapsible" style="display:${settings.EditingStatsExpanded ? "block" : "none"};">`,
-            '<div>',
-            '<div class="editor-progress-item">',
-            '<h4>Average Edits per Day</h4></div><div class="editor-progress__count">' + editAverageDaily,
-            '</div></div>',
+            '<div style="display:inline-block;"><div><h4>Average Edits per Day</h4></div><div>' + editAverageDaily + '</div></div>',
+            '<div style="display:inline-block; margin-left:25px;"><div><h4>Average Edits per Day (active days only)</h4></div><div>' + editAverageDailyActive + '</div></div>',
             '<div class="editor-progress-list" style="display:flex; flex-flow:row wrap; justify-content:space-around;">',
             buildProgressItemsHTML(),
             '</div>'
