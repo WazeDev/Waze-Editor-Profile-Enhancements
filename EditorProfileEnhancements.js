@@ -1,13 +1,14 @@
 // ==UserScript==
 // @name         Waze Editor Profile Enhancements
 // @namespace    http://tampermonkey.net/
-// @version      2018.07.19.02
+// @version      2018.07.22.01
 // @description  Pulls the correct forum post count - changed to red to signify the value as pulled from the forum by the script
 // @author       JustinS83
 // @include      https://www.waze.com/*user/editor*
 // @include      https://beta.waze.com/*user/editor*
 // @grant        GM_xmlhttpRequest
 // @require      https://code.jquery.com/ui/1.12.1/jquery-ui.js
+// @contributionURL https://github.com/WazeDev/Thank-The-Authors
 // ==/UserScript==
 
 (function() {
@@ -273,11 +274,13 @@
         $('.editing-activity').css({"width":"1010px"}); //With adding the Avg and Tot rows we have to widen the div a little so it doesn't wrap one of the columns
 
         let currWeekday = new Date().getDay();
+        if(currWeekday === 0)
+            currWeekday = 7;
         let localEditActivity = [].concat(W.EditorProfile.data.editingActivity);
         let weekEditsArr = localEditActivity.splice(-currWeekday);
         let weekEditsCount = weekEditsArr.reduce(reducer);
-        $('.weeks div:nth-child(14) .week').append(`<div class="day" style="font-size:10px; height:10px; text-align:center; margin-top:-5px;" title="Average edits per day for this week">${weekEditsCount/currWeekday}</div><div style="font-size:10px; height:10px; text-align:center;" title="Total edits for this week">${weekEditsCount}</div>`);
-        for(let i=13; i>0; i--){
+        $('.weeks div:nth-child(13) .week').append(`<div class="day" style="font-size:10px; height:10px; text-align:center; margin-top:-5px;" title="Average edits per day for this week">${Math.round(weekEditsCount/currWeekday * 100) / 100}</div><div style="font-size:10px; height:10px; text-align:center;" title="Total edits for this week">${weekEditsCount}</div>`);
+        for(let i=12; i>0; i--){
             weekEditsArr = localEditActivity.splice(-7);
             weekEditsCount = weekEditsArr.splice(-7).reduce(reducer);
             let avg = Math.round(weekEditsCount/7 * 100) / 100;
