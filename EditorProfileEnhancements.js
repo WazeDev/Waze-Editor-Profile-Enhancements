@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Waze Editor Profile Enhancements
 // @namespace    http://tampermonkey.net/
-// @version      2018.07.22.01
+// @version      2018.07.23.01
 // @description  Pulls the correct forum post count - changed to red to signify the value as pulled from the forum by the script
 // @author       JustinS83
 // @include      https://www.waze.com/*user/editor*
@@ -47,19 +47,21 @@
             if(matches && matches.length > 0)
                 re = matches[1];
             var WazeVal = $('#header > div > div.user-info > div > div.user-highlights > div > div:nth-child(3) > div.user-stats-value')[0].innerHTML.trim();
-            var userForumID = forumResult.match(/<a href="\.\/memberlist\.php\?mode=viewprofile&amp;u=(\d+)"/)[1];
+            var userForumID = forumResult.match(/<a href="\.\/memberlist\.php\?mode=viewprofile&amp;u=(\d+)"/);
+            if(userForumID != null){
+                userForumID = userForumID[1];
+                $('#header > div > div.user-info > div > div.user-highlights > div > div:nth-child(3) > div.highlight-title').css('position', 'relative');
 
-            $('#header > div > div.user-info > div > div.user-highlights > div > div:nth-child(3) > div.highlight-title').css('position', 'relative');
+                if(WazeVal !== re.toString()){
+                    $('#header > div > div.user-info > div > div.user-highlights > div > div:nth-child(3) > div.user-stats-value')[0].innerHTML = re;
+                    $('#header > div > div.user-info > div > div.user-highlights > div > div:nth-child(3) > div.user-stats-value').css('color','red');
+                    $('#header > div > div.user-info > div > div.user-highlights > div > div:nth-child(3) > div.user-stats-value').prop('title', 'Waze reported value: ' + WazeVal);
+                }
 
-            if(WazeVal !== re.toString()){
-                $('#header > div > div.user-info > div > div.user-highlights > div > div:nth-child(3) > div.user-stats-value')[0].innerHTML = re;
-                $('#header > div > div.user-info > div > div.user-highlights > div > div:nth-child(3) > div.user-stats-value').css('color','red');
-                $('#header > div > div.user-info > div > div.user-highlights > div > div:nth-child(3) > div.user-stats-value').prop('title', 'Waze reported value: ' + WazeVal);
+                $('#header > div > div.user-info > div > div.user-highlights > div > div:nth-child(3)').wrap('<a href="https://www.waze.com/forum/search.php?author_id=' + userForumID + '&sr=posts" targ="_blank"></a>');
+
+                $('#header > div > div.user-info > div > div.user-highlights > a').prepend('<a href="https://www.waze.com/forum/memberlist.php?mode=viewprofile&u=' + userForumID +'" target="_blank" style="margin-right:5px;"><button class="message s-modern-button s-modern"><i class="fa fa-user"></i><span>Forum Profile</span></button></a>');
             }
-
-            $('#header > div > div.user-info > div > div.user-highlights > div > div:nth-child(3)').wrap('<a href="https://www.waze.com/forum/search.php?author_id=' + userForumID + '&sr=posts" targ="_blank"></a>');
-
-            $('#header > div > div.user-info > div > div.user-highlights > a').prepend('<a href="https://www.waze.com/forum/memberlist.php?mode=viewprofile&u=' + userForumID +'" target="_blank" style="margin-right:5px;"><button class="message s-modern-button s-modern"><i class="fa fa-user"></i><span>Forum Profile</span></button></a>');
         });
 
         var count = 0;
@@ -150,15 +152,15 @@
                 '</ul>',
                 '<div class="tab-content">',
                 '<div id="naAreas" class="tab-pane fade in active">',
-                '<div id="wpenaAreas" style="float:left;"><h3 style="float:left; left:50%;">Editor Areas</h3><br>' + buildAreaList(nawkts,"na") + '</div>',
+                '<div id="wpenaAreas" style="float:left; max-height:350px; overflow:auto;"><h3 style="float:left; left:50%;">Editor Areas</h3><br>' + buildAreaList(nawkts,"na") + '</div>',
                 '<div id="wpenaPolygons" style="float:left; padding-left:15px;"><h3 style="position:relative; float:left; left:40%;">Area WKT</h3><br><textarea rows="7" cols="55" id="wpenaAreaWKT" style="height:auto;"></textarea></div>',
                 '</div>',//naAreas
                 '<div id="rowAreas" class="tab-pane fade">',
-                '<div id="wperowAreas" style="float:left;"><h3 style="float:left; left:50%;">Editor Areas</h3><br>' + buildAreaList(rowwkts, "row") + '</div>',
+                '<div id="wperowAreas" style="float:left; max-height:350px; overflow:auto;"><h3 style="float:left; left:50%;">Editor Areas</h3><br>' + buildAreaList(rowwkts, "row") + '</div>',
                 '<div id="wperowPolygons" style="float:left; padding-left:15px;"><h3 style="position:relative; float:left; left:40%;">Area WKT</h3><br><textarea rows="7" cols="55" id="wperowAreaWKT" style="height:auto;"></textarea></div>',
                 '</div>',//rowAreas
                 '<div id="ilAreas" class="tab-pane fade">',
-                '<div id="wpeilAreas" style="float:left;"><h3 style="float:left; left:50%;">Editor Areas</h3><br>' + buildAreaList(ilwkts, "il") + '</div>',
+                '<div id="wpeilAreas" style="float:left; max-height:350px; overflow:auto;"><h3 style="float:left; left:50%;">Editor Areas</h3><br>' + buildAreaList(ilwkts, "il") + '</div>',
                 '<div id="wpeilPolygons" style="float:left; padding-left:15px;"><h3 style="position:relative; float:left; left:40%;">Area WKT</h3><br><textarea rows="7" cols="55" id="wpeilAreaWKT" style="height:auto;"></textarea></div>',
                 '</div>',//ilAreas
                 '<div id="wpeFooter" style="clear:both; margin-top:10px;">View the areas by entering the WKT at <a href="http://map.wazedev.com" target="_blank">http://map.wazedev.com</a></div>',
@@ -279,8 +281,11 @@
         let localEditActivity = [].concat(W.EditorProfile.data.editingActivity);
         let weekEditsArr = localEditActivity.splice(-currWeekday);
         let weekEditsCount = weekEditsArr.reduce(reducer);
-        $('.weeks div:nth-child(13) .week').append(`<div class="day" style="font-size:10px; height:10px; text-align:center; margin-top:-5px;" title="Average edits per day for this week">${Math.round(weekEditsCount/currWeekday * 100) / 100}</div><div style="font-size:10px; height:10px; text-align:center;" title="Total edits for this week">${weekEditsCount}</div>`);
-        for(let i=12; i>0; i--){
+        var iteratorStart = 13;
+        if(currWeekday === 7)
+            iteratorStart = 12;
+        $(`.weeks div:nth-child(${iteratorStart+1}) .week`).append(`<div class="day" style="font-size:10px; height:10px; text-align:center; margin-top:-5px;" title="Average edits per day for this week">${Math.round(weekEditsCount/currWeekday * 100) / 100}</div><div style="font-size:10px; height:10px; text-align:center;" title="Total edits for this week">${weekEditsCount}</div>`);
+        for(let i=iteratorStart; i>0; i--){
             weekEditsArr = localEditActivity.splice(-7);
             weekEditsCount = weekEditsArr.splice(-7).reduce(reducer);
             let avg = Math.round(weekEditsCount/7 * 100) / 100;
@@ -291,10 +296,10 @@
     function buildAreaList(wkts, server){
         let html = "";
         for(let i=0; i<wkts.length; i++){
-            html +=`<button id="wpe${server}AreaButton${i}" class="btn btn-outline-primary" style="margin-bottom:5px;">Area ${i+1}</button><br>`;
+            html +=`<button id="wpe${server}AreaButton${i}" class="s-button s-button--mercury " style="margin-bottom:5px;">Area ${i+1}</button><br>`;
         }
         if(wkts.length > 1)
-            html +=`<button id="wpe${server}CombinedAreaButton" class="btn btn-outline-primary" style="margin-bottom:5px;">Combined</button><br>`;
+            html +=`<button id="wpe${server}CombinedAreaButton" class="s-button s-button--mercury " style="margin-bottom:5px;">Combined</button><br>`;
         return html;
     }
 
