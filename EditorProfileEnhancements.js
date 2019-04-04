@@ -1,16 +1,26 @@
 // ==UserScript==
-// @name         Waze Editor Profile Enhancements
-// @namespace    http://tampermonkey.net/
-// @version      2018.08.02.01
-// @description  Pulls the correct forum post count - changed to red to signify the value as pulled from the forum by the script
-// @icon         data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAUCAYAAACXtf2DAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAZdEVYdFNvZnR3YXJlAHBhaW50Lm5ldCA0LjAuMjHxIGmVAAADQklEQVRIS92VS0wTQRjHq+IrvmKiB8VEbxK9aIweNMZEEi/Gkxq6u4UCKjEEiQajMRobE7DdbrvS8DCF3Z3ty8oqiGAw4KMKxKpBxUcEORTF+EZFRQjPz5llbVqo0nj0n/wzO535ft/szDdbXbwyAUylrWgNxUk5NCsdpTm0h7LLGw446mZqUyYXAEwxmUwJWleVgXPPoTnZTrHoG2WRvutZsRc/DzJWuZ/h0A+c7Attk7MURZmmhcTWbjzBYJE2ptnlRO0nnRGhWZRV7KdYqQ8b/mgr+omTfsxwKIu10IliWGElZS7fkckK80gyhpU249XhwBjAGNaz0ihpIxcYFtkaxipso1hxS5bFuYCyoSQ8+UckIG5bURfj8MzX0GOizaULDZy0dZ/DtUXPCksZKzqO93ooJmAS06w4jAshW0OPibGULUvLlxNzCtHNPLGqAVcLPsjYgHisZ9Frk6LM0PA6XUaBuJiy+RaRM8gu9ifjrVL389+NRkibyVbPUxNkFytzqQJnEklAm+V1EwPI4bkgnXerbaxxYjKWccYDeAfUBZISVxPg2p/KFJRtZk5L62nOuxzX+/D4YOKq4BPwNz4E4VoQztY1gaP2FhTV3obSq00gNATVsZr7zwCf4eAhRZmtwolIFenNwtosp3M6qeUosBWpbTUO7OzuCftMTQBaQm/C/aevPwBXeR2a20KQWejt1NAThV9vUyrnGiTQdN4FB8svwoMI0G9X3n0Cz998Cvc73n+GiuZWQDfuDRh5t0/DRWt/sT+VgK897hhpf9sdBYzHra/egpF39abx8moNGa1UTu464antf/EuGh6KeB7v0Kevatvc9lLdSgzfpeEmyhQIJODXK9nr8H0vrw8O+W4/gL0OL16VG843PYoCN7Z3QnbJeVwpMhxz1YwY7a6fBhtiNNTfZbBJG402TxFe0fApfx3w1QFcetKoyXulJ0+41JdfUf8Nl+PQYbEKyuvvqCtneLRdC49f+GPXkuu8AEekSwTSg/sp+H8gFyejKYvYmFV0Dk56r5CxAYb3LNHCJhe5IAwnrqLMwk69RbxOYCk2KYVcSFLSRjNawbAoGd+Xyxge1FtQLvncaOH/lXS6Xw40MXnm6lDsAAAAAElFTkSuQmCC
-// @author       JustinS83
-// @include      https://www.waze.com/*user/editor*
-// @include      https://beta.waze.com/*user/editor*
-// @grant        GM_xmlhttpRequest
-// @require      https://code.jquery.com/ui/1.12.1/jquery-ui.js
-// @contributionURL https://github.com/WazeDev/Thank-The-Authors
+// @name             Waze Editor Profile Enhancements
+// @namespace        http://tampermonkey.net/
+// @version          2019.04.04.01
+// @description      Pulls the correct forum post count - changed to red to signify the value as pulled from the forum by the script & more!
+// @icon             data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAUCAYAAACXtf2DAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAZdEVYdFNvZnR3YXJlAHBhaW50Lm5ldCA0LjAuMjHxIGmVAAADQklEQVRIS92VS0wTQRjHq+IrvmKiB8VEbxK9aIweNMZEEi/Gkxq6u4UCKjEEiQajMRobE7DdbrvS8DCF3Z3ty8oqiGAw4KMKxKpBxUcEORTF+EZFRQjPz5llbVqo0nj0n/wzO535ft/szDdbXbwyAUylrWgNxUk5NCsdpTm0h7LLGw446mZqUyYXAEwxmUwJWleVgXPPoTnZTrHoG2WRvutZsRc/DzJWuZ/h0A+c7Attk7MURZmmhcTWbjzBYJE2ptnlRO0nnRGhWZRV7KdYqQ8b/mgr+omTfsxwKIu10IliWGElZS7fkckK80gyhpU249XhwBjAGNaz0ihpIxcYFtkaxipso1hxS5bFuYCyoSQ8+UckIG5bURfj8MzX0GOizaULDZy0dZ/DtUXPCksZKzqO93ooJmAS06w4jAshW0OPibGULUvLlxNzCtHNPLGqAVcLPsjYgHisZ9Frk6LM0PA6XUaBuJiy+RaRM8gu9ifjrVL389+NRkibyVbPUxNkFytzqQJnEklAm+V1EwPI4bkgnXerbaxxYjKWccYDeAfUBZISVxPg2p/KFJRtZk5L62nOuxzX+/D4YOKq4BPwNz4E4VoQztY1gaP2FhTV3obSq00gNATVsZr7zwCf4eAhRZmtwolIFenNwtosp3M6qeUosBWpbTUO7OzuCftMTQBaQm/C/aevPwBXeR2a20KQWejt1NAThV9vUyrnGiTQdN4FB8svwoMI0G9X3n0Cz998Cvc73n+GiuZWQDfuDRh5t0/DRWt/sT+VgK897hhpf9sdBYzHra/egpF39abx8moNGa1UTu464antf/EuGh6KeB7v0Kevatvc9lLdSgzfpeEmyhQIJODXK9nr8H0vrw8O+W4/gL0OL16VG843PYoCN7Z3QnbJeVwpMhxz1YwY7a6fBhtiNNTfZbBJG402TxFe0fApfx3w1QFcetKoyXulJ0+41JdfUf8Nl+PQYbEKyuvvqCtneLRdC49f+GPXkuu8AEekSwTSg/sp+H8gFyejKYvYmFV0Dk56r5CxAYb3LNHCJhe5IAwnrqLMwk69RbxOYCk2KYVcSFLSRjNawbAoGd+Xyxge1FtQLvncaOH/lXS6Xw40MXnm6lDsAAAAAElFTkSuQmCC
+// @author           JustinS83
+// @include          https://www.waze.com/*user/editor*
+// @include          https://beta.waze.com/*user/editor*
+// require           https://code.jquery.com/ui/1.12.1/jquery-ui.js
+// @contributionURL  https://github.com/WazeDev/Thank-The-Authors
+// @run-at           document-start
 // ==/UserScript==
+
+/* global W */
+/* global OL */
+/* global $ */
+/* global I18n */
+/* global _ */
+/* global WazeWrap */
+/* global require */
+/* global gon */
+/* eslint curly: ["warn", "multi-or-nest"] */
 
 (function() {
     'use strict';
@@ -21,14 +31,39 @@
     var naMA, rowMA, ilMA;
     const reducer = (accumulator, currentValue) => accumulator + currentValue;
 
+    loadSettings();
+
+    let lastEditEnv= gon.data.lastEditEnv;
+
+    function getApiUrlUserProfile(username, env) {
+        let apiEnv = '';
+        if (env != 'na')
+            apiEnv = env + '-';
+        return `https://${window.location.host}/${apiEnv}Descartes/app/UserProfile/Profile?username=${username}`;
+    }
+
+    if (typeof settings.Environment != 'undefined'
+        && settings.Environment != 'default'
+        && settings.Environment != gon.data.lastEditEnv) {
+        let apiUrl = getApiUrlUserProfile(gon.data.username, settings.Environment);
+
+        // synchronous XMLHttpRequest required as we need to pause execution to replace window.gon object
+        // The deprication warning in console is expected.
+        var request = new XMLHttpRequest();
+        request.open('GET', apiUrl, false); // 'false' makes the request synchronous
+        request.send(null);
+
+        if (request.status === 200)
+            gon.data = JSON.parse(request.responseText);
+        gon.data.lastEditEnv = settings.Environment;
+    }
+
+
     function bootstrap(tries = 1) {
-        if (W &&
-            W.EditorProfile &&
-            $) {
+        if (typeof W !== 'undefined' && W.EditorProfile && $)
             init();
-        } else if (tries < 1000) {
+        else if (tries < 1000)
             setTimeout(function () {bootstrap(tries++);}, 200);
-        }
     }
 
     bootstrap();
@@ -36,7 +71,6 @@
     async function init(){
         $('body').append('<span id="ruler" style="visibility:hidden; white-space:nowrap;"></span>');
         //injectCSS();
-        loadSettings();
         String.prototype.visualLength = function(){ //measures the visual length of a string so we can better center the area labels on the areas
             var ruler = $("#ruler");
             ruler[0].innerHTML = this;
@@ -75,31 +109,99 @@
         AddEditingActivityAvgandTot();
         /************** Add Editor Stats Section **************/
         AddEditorStatsSection();
+
+        initEnvironmentChooser();
+    }
+
+    function initEnvironmentChooser(){
+        let highlight = document.createElement('div');
+        highlight.className="highlight";
+        let highlightTitle = document.createElement('div');
+        highlightTitle.className="highlight-title";
+        let highlightTitleIcon = document.createElement('div');
+        //highlightTitleIcon.className="highlight-title-icon posts";
+        highlightTitleIcon.setAttribute('style',getIconStyle());
+        let highlightTitleText = document.createElement('div');
+        highlightTitleText.className="highlight-title-text";
+        let userStatsValue = document.createElement('div');
+        userStatsValue.className="user-stats-value";
+
+        highlightTitle.appendChild(highlightTitleIcon);
+        highlightTitle.appendChild(highlightTitleText);
+        highlight.appendChild(highlightTitle);
+        highlight.appendChild(userStatsValue);
+
+        highlightTitleText.innerHTML = 'Environments';
+        userStatsValue.setAttribute('style','margin-top: -10px;font-size: 17px;');
+
+        let frag = document.createDocumentFragment(),
+            select = document.createElement("select");
+        select.id = 'environmentSelect';
+        select.name = 'environmentSelect';
+        select.setAttribute('style','position:relative;box-shadow: 0 0 2px #57889C;background: white;font-family: sans-serif;display: inherit;top: -11px;border: 0px;outline: 0px;color: #59899e;');
+
+        select.options.add( new Option("Last Edit (" + lastEditEnv.toUpperCase() + ")","default", true, true) );
+        select.options.add( new Option("NA","na") );
+        select.options.add( new Option("ROW","row") );
+        select.options.add( new Option("IL","il") );
+
+        for (var i = 0; i < select.options.length; i++) {
+            if (select.options[i].value == settings.Environment)
+                select.options[i].selected = true;
+        }
+
+        frag.appendChild(select);
+        document.getElementsByClassName('user-stats')[0].prepend(highlight);
+        userStatsValue.appendChild(frag);
+
+        document.querySelector('select[name="environmentSelect"]').onchange = envChanged;
+    }
+
+    function getIconStyle() {
+        let tempQuerySelector = document.querySelector('#edits-by-type .venue-icon');
+        let tempComputedStyle = window.getComputedStyle(tempQuerySelector);
+        let iconStyle =
+            `background-image:${tempComputedStyle.getPropertyValue('background-image')};`
+        + `background-size:${tempComputedStyle.getPropertyValue('background-size')};`
+        + `background-position:${tempComputedStyle.getPropertyValue('background-position')};`
+        + `width:${tempComputedStyle.getPropertyValue('width')};`
+        + `height:${tempComputedStyle.getPropertyValue('height')};`
+        + `transform: scale(0.5);`
+        + `display: inline-block;`
+        + `float: left;`
+        + `position: relative;`
+        + `top: -10px;`
+        + `left: -9px;`
+        + `margin-right: -18px;`
+        + `filter: invert(10%) sepia(39%) saturate(405%) hue-rotate(152deg) brightness(99%) contrast(86%);`;
+        return iconStyle;
     }
 
     function AddLabelsToAreas(){
-        $('svg.leaflet-zoom-animated g > text').remove();
-        var svg = $('svg.leaflet-zoom-animated')[0];
-        var pt = svg.createSVGPoint(), svgP;
+        if($('svg.leaflet-zoom-animated').length > 0){
+            $('svg.leaflet-zoom-animated g > text').remove();
+            var svg = $('svg.leaflet-zoom-animated')[0];
+            var pt = svg.createSVGPoint(), svgP;
 
-        let displayedAreas = $('svg.leaflet-zoom-animated g');
+            let displayedAreas = $('svg.leaflet-zoom-animated g');
 
-        for(let i=0;i<displayedAreas.length;i++){
-            let windowPosition = $(displayedAreas[i])[0].getBoundingClientRect();
-            pt.x = (windowPosition.left + windowPosition.right) / 2;
-            pt.y = (windowPosition.top + windowPosition.bottom) / 2;
-            svgP = pt.matrixTransform(svg.getScreenCTM().inverse());
+            for(let i=0;i<displayedAreas.length;i++){
+                let windowPosition = $(displayedAreas[i])[0].getBoundingClientRect();
+                pt.x = (windowPosition.left + windowPosition.right) / 2;
+                pt.y = (windowPosition.top + windowPosition.bottom) / 2;
+                svgP = pt.matrixTransform(svg.getScreenCTM().inverse());
 
-            if(svgP.x != 0 && svgP.y != 0){
-                var newText = document.createElementNS("http://www.w3.org/2000/svg","text");
-                newText.setAttributeNS(null,"x",svgP.x - (`Area ${i+1}`.visualLength() /2));
-                newText.setAttributeNS(null,"y",svgP.y);
-                newText.setAttributeNS(null, "fill", "red");
-                newText.setAttributeNS(null,"font-size","12");
+                if(svgP.x != 0 && svgP.y != 0){
+                    var newText = document.createElementNS("http://www.w3.org/2000/svg","text");
+                    newText.setAttributeNS(null,"x",svgP.x - (`Area ${i+1}`.visualLength() /2));
+                    newText.setAttributeNS(null,"y",svgP.y);
+                    newText.setAttributeNS(null, "fill", "red");
+                    newText.setAttributeNS(null,"font-size","12");
 
-                var textNode = document.createTextNode(`Area ${i+1}`);
-                newText.appendChild(textNode);
-                $(displayedAreas[i])[0].appendChild(newText);
+                    var textNode = document.createTextNode(`Area ${i+1}`);
+                    newText.appendChild(textNode);
+                    $(displayedAreas[i])[0].appendChild(newText);
+                }
             }
         }
     }
@@ -358,6 +460,12 @@
             }).fetch();*/
     }
 
+    function envChanged(e) {
+        settings.Environment = e.target.value;
+        saveSettings();
+        location.reload();
+    }
+
     function injectCSS() {
         /*var css =  [
             ].join(' ');
@@ -365,9 +473,10 @@
     }
 
     function loadSettings() {
-        var loadedSettings = $.parseJSON(localStorage.getItem("WEPE_Settings"));
+        var loadedSettings = JSON.parse(localStorage.getItem("WEPE_Settings"));
         var defaultSettings = {
-            EditingStatsExpanded: true
+            EditingStatsExpanded: true,
+            Environment: 'default'
         };
         settings = loadedSettings ? loadedSettings : defaultSettings;
         for (var prop in defaultSettings) {
@@ -380,6 +489,7 @@
         if (localStorage) {
             var localsettings = {
                 EditingStatsExpanded: settings.EditingStatsExpanded,
+                Environment: settings.Environment
             };
 
             localStorage.setItem("WEPE_Settings", JSON.stringify(localsettings));
