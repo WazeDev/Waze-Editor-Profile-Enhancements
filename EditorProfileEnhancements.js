@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name             Waze Editor Profile Enhancements
 // @namespace        http://tampermonkey.net/
-// @version          2021.06.16.01
+// @version          2021.06.16.02
 // @description      Pulls the correct forum post count - changed to red to signify the value as pulled from the forum by the script & more!
 // @icon             data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAUCAYAAACXtf2DAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAZdEVYdFNvZnR3YXJlAHBhaW50Lm5ldCA0LjAuMjHxIGmVAAADQklEQVRIS92VS0wTQRjHq+IrvmKiB8VEbxK9aIweNMZEEi/Gkxq6u4UCKjEEiQajMRobE7DdbrvS8DCF3Z3ty8oqiGAw4KMKxKpBxUcEORTF+EZFRQjPz5llbVqo0nj0n/wzO535ft/szDdbXbwyAUylrWgNxUk5NCsdpTm0h7LLGw446mZqUyYXAEwxmUwJWleVgXPPoTnZTrHoG2WRvutZsRc/DzJWuZ/h0A+c7Attk7MURZmmhcTWbjzBYJE2ptnlRO0nnRGhWZRV7KdYqQ8b/mgr+omTfsxwKIu10IliWGElZS7fkckK80gyhpU249XhwBjAGNaz0ihpIxcYFtkaxipso1hxS5bFuYCyoSQ8+UckIG5bURfj8MzX0GOizaULDZy0dZ/DtUXPCksZKzqO93ooJmAS06w4jAshW0OPibGULUvLlxNzCtHNPLGqAVcLPsjYgHisZ9Frk6LM0PA6XUaBuJiy+RaRM8gu9ifjrVL389+NRkibyVbPUxNkFytzqQJnEklAm+V1EwPI4bkgnXerbaxxYjKWccYDeAfUBZISVxPg2p/KFJRtZk5L62nOuxzX+/D4YOKq4BPwNz4E4VoQztY1gaP2FhTV3obSq00gNATVsZr7zwCf4eAhRZmtwolIFenNwtosp3M6qeUosBWpbTUO7OzuCftMTQBaQm/C/aevPwBXeR2a20KQWejt1NAThV9vUyrnGiTQdN4FB8svwoMI0G9X3n0Cz998Cvc73n+GiuZWQDfuDRh5t0/DRWt/sT+VgK897hhpf9sdBYzHra/egpF39abx8moNGa1UTu464antf/EuGh6KeB7v0Kevatvc9lLdSgzfpeEmyhQIJODXK9nr8H0vrw8O+W4/gL0OL16VG843PYoCN7Z3QnbJeVwpMhxz1YwY7a6fBhtiNNTfZbBJG402TxFe0fApfx3w1QFcetKoyXulJ0+41JdfUf8Nl+PQYbEKyuvvqCtneLRdC49f+GPXkuu8AEekSwTSg/sp+H8gFyejKYvYmFV0Dk56r5CxAYb3LNHCJhe5IAwnrqLMwk69RbxOYCk2KYVcSFLSRjNawbAoGd+Xyxge1FtQLvncaOH/lXS6Xw40MXnm6lDsAAAAAElFTkSuQmCC
 // @author           JustinS83
@@ -12,8 +12,12 @@
 // @run-at           document-start
 // ==/UserScript==
 
+/* global W */
+/* global OL */
 /* global $ */
+/* global I18n */
 /* global _ */
+/* global WazeWrap */
 /* global require */
 /* global gon */
 /* eslint curly: ["warn", "multi-or-nest"] */
@@ -59,7 +63,7 @@
         if (typeof W !== 'undefined' && W.EditorProfile && $)
             init();
         else if (tries < 1000)
-            setTimeout(function () {bootstrap(++tries);}, 200);
+            setTimeout(function () {bootstrap(tries++);}, 200);
     }
 
     bootstrap();
@@ -77,11 +81,11 @@
             var matches = forumResult.match(/<a href=".*?"\s*?title="Search user’s posts">(\d+)<\/a>/);
             if(matches && matches.length > 0)
                 re = matches[1];
-            var WazeVal = $('#header > div > div.user-info > div > div.user-highlights > div > div:nth-child(3) > div.user-stats-value')[0].innerHTML.trim();
+            var WazeVal = $('.posts').parent().next()[0].innerHTML.trim();
             var userForumID = forumResult.match(/<a href="\.\/memberlist\.php\?mode=viewprofile&amp;u=(\d+)"/);
             if(userForumID != null){
                 userForumID = userForumID[1];
-                $('#header > div > div.user-info > div > div.user-highlights > div > div:nth-child(3) > div.highlight-title').css('position', 'relative');
+                $('.posts').parent().css('position', 'relative');
 
                 if(WazeVal !== re.toString()){
                     $('.posts').parent().next()[0].innerHTML = re;
