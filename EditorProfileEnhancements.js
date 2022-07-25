@@ -95,7 +95,7 @@
 
                 $('.posts').parent().parent().wrap('<a href="https://www.waze.com/forum/search.php?author_id=' + userForumID + '&sr=posts" target="_blank"></a>');
 
-                $('#header > div > div.user-info > div > div.user-highlights > a').prepend('<a href="https://www.waze.com/forum/memberlist.php?mode=viewprofile&u=' + userForumID +'" target="_blank" style="margin-right:5px;"><button class="message s-modern-button s-modern"><i class="fa fa-user"></i><span>Forum Profile</span></button></a>');
+                $('#header > div > div.user-info > div > div.user-highlights').prepend('<a href="https://www.waze.com/forum/memberlist.php?mode=viewprofile&u=' + userForumID +'" target="_blank" style="margin-right:5px;" id="forumProfile" style="float: right;"><button class="s-modern-button s-modern" style="float: right;"><i class="fa fa-user"></i><span>Forum Profile</span></button></a>');
             }
         });
 
@@ -208,7 +208,7 @@
 
     function BuildManagedAreasWKTInterface(){
         if(naMA.managedAreas.length > 0 || rowMA.managedAreas.length > 0 || ilMA.managedAreas.length > 0){
-            $('#header > div > div.user-info > div > div.user-highlights > a').append('<a href="#" title="View editor\'s managed areas in WKT format"><button class="message s-modern-button s-modern" id="userMA"><i class="fa fa-map-o" aria-hidden="true"></i></button></a>');
+            $('#header > div > div.user-info > div > div.user-highlights > div.user-stats').before('<a href="#" title="View editor\'s managed areas in WKT format"><button class="s-modern-button s-modern" id="userMA" style="float: right;"><i class="fa fa-map-o" aria-hidden="true"></i></button></a>');
 
             /****** MO to update labels when panning/zooming the map ************/
             var observer = new MutationObserver(function(mutations) {
