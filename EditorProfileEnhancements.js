@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name             Waze Editor Profile Enhancements
 // @namespace        http://tampermonkey.net/
-// @version          2021.06.16.02
+// @version          2022.08.06.01
 // @description      Pulls the correct forum post count - changed to red to signify the value as pulled from the forum by the script & more!
 // @icon             data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAUCAYAAACXtf2DAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAZdEVYdFNvZnR3YXJlAHBhaW50Lm5ldCA0LjAuMjHxIGmVAAADQklEQVRIS92VS0wTQRjHq+IrvmKiB8VEbxK9aIweNMZEEi/Gkxq6u4UCKjEEiQajMRobE7DdbrvS8DCF3Z3ty8oqiGAw4KMKxKpBxUcEORTF+EZFRQjPz5llbVqo0nj0n/wzO535ft/szDdbXbwyAUylrWgNxUk5NCsdpTm0h7LLGw446mZqUyYXAEwxmUwJWleVgXPPoTnZTrHoG2WRvutZsRc/DzJWuZ/h0A+c7Attk7MURZmmhcTWbjzBYJE2ptnlRO0nnRGhWZRV7KdYqQ8b/mgr+omTfsxwKIu10IliWGElZS7fkckK80gyhpU249XhwBjAGNaz0ihpIxcYFtkaxipso1hxS5bFuYCyoSQ8+UckIG5bURfj8MzX0GOizaULDZy0dZ/DtUXPCksZKzqO93ooJmAS06w4jAshW0OPibGULUvLlxNzCtHNPLGqAVcLPsjYgHisZ9Frk6LM0PA6XUaBuJiy+RaRM8gu9ifjrVL389+NRkibyVbPUxNkFytzqQJnEklAm+V1EwPI4bkgnXerbaxxYjKWccYDeAfUBZISVxPg2p/KFJRtZk5L62nOuxzX+/D4YOKq4BPwNz4E4VoQztY1gaP2FhTV3obSq00gNATVsZr7zwCf4eAhRZmtwolIFenNwtosp3M6qeUosBWpbTUO7OzuCftMTQBaQm/C/aevPwBXeR2a20KQWejt1NAThV9vUyrnGiTQdN4FB8svwoMI0G9X3n0Cz998Cvc73n+GiuZWQDfuDRh5t0/DRWt/sT+VgK897hhpf9sdBYzHra/egpF39abx8moNGa1UTu464antf/EuGh6KeB7v0Kevatvc9lLdSgzfpeEmyhQIJODXK9nr8H0vrw8O+W4/gL0OL16VG843PYoCN7Z3QnbJeVwpMhxz1YwY7a6fBhtiNNTfZbBJG402TxFe0fApfx3w1QFcetKoyXulJ0+41JdfUf8Nl+PQYbEKyuvvqCtneLRdC49f+GPXkuu8AEekSwTSg/sp+H8gFyejKYvYmFV0Dk56r5CxAYb3LNHCJhe5IAwnrqLMwk69RbxOYCk2KYVcSFLSRjNawbAoGd+Xyxge1FtQLvncaOH/lXS6Xw40MXnm6lDsAAAAAElFTkSuQmCC
 // @author           JustinS83
@@ -96,6 +96,11 @@
                 $('.posts').parent().parent().wrap('<a href="https://www.waze.com/forum/search.php?author_id=' + userForumID + '&sr=posts" target="_blank"></a>');
 
                 $('#header > div > div.user-info > div > div.user-highlights > a').prepend('<a href="https://www.waze.com/forum/memberlist.php?mode=viewprofile&u=' + userForumID +'" target="_blank" style="margin-right:5px;"><button class="message s-modern-button s-modern"><i class="fa fa-user"></i><span>Forum Profile</span></button></a>');
+
+                // Additional "Load more" at the top of the list
+                $('#recent-edits > div > div > div > div.recent-edits-list > div > div.recent-edits-list-header').after('<div class="recent-edits-load-more"> <button class="s-button s-button--mercury "> Load More </button> </div>');
+                var scrollarea = document.querySelector('#recent-edits .recent-edits-list .recent-edits-scrollable');
+                scrollarea.style.height = '492px';
             }
         });
 
