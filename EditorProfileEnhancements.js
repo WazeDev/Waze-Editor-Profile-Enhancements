@@ -1,14 +1,12 @@
 // ==UserScript==
 // @name             Waze Editor Profile Enhancements
 // @namespace        http://tampermonkey.net/
-// @version          2023.04.20.02
+// @version          2023.05.06.01
 // @description      Pulls the correct forum post count - changed to red to signify the value as pulled from the forum by the script & more!
 // @icon             data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAUCAYAAACXtf2DAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAZdEVYdFNvZnR3YXJlAHBhaW50Lm5ldCA0LjAuMjHxIGmVAAADQklEQVRIS92VS0wTQRjHq+IrvmKiB8VEbxK9aIweNMZEEi/Gkxq6u4UCKjEEiQajMRobE7DdbrvS8DCF3Z3ty8oqiGAw4KMKxKpBxUcEORTF+EZFRQjPz5llbVqo0nj0n/wzO535ft/szDdbXbwyAUylrWgNxUk5NCsdpTm0h7LLGw446mZqUyYXAEwxmUwJWleVgXPPoTnZTrHoG2WRvutZsRc/DzJWuZ/h0A+c7Attk7MURZmmhcTWbjzBYJE2ptnlRO0nnRGhWZRV7KdYqQ8b/mgr+omTfsxwKIu10IliWGElZS7fkckK80gyhpU249XhwBjAGNaz0ihpIxcYFtkaxipso1hxS5bFuYCyoSQ8+UckIG5bURfj8MzX0GOizaULDZy0dZ/DtUXPCksZKzqO93ooJmAS06w4jAshW0OPibGULUvLlxNzCtHNPLGqAVcLPsjYgHisZ9Frk6LM0PA6XUaBuJiy+RaRM8gu9ifjrVL389+NRkibyVbPUxNkFytzqQJnEklAm+V1EwPI4bkgnXerbaxxYjKWccYDeAfUBZISVxPg2p/KFJRtZk5L62nOuxzX+/D4YOKq4BPwNz4E4VoQztY1gaP2FhTV3obSq00gNATVsZr7zwCf4eAhRZmtwolIFenNwtosp3M6qeUosBWpbTUO7OzuCftMTQBaQm/C/aevPwBXeR2a20KQWejt1NAThV9vUyrnGiTQdN4FB8svwoMI0G9X3n0Cz998Cvc73n+GiuZWQDfuDRh5t0/DRWt/sT+VgK897hhpf9sdBYzHra/egpF39abx8moNGa1UTu464antf/EuGh6KeB7v0Kevatvc9lLdSgzfpeEmyhQIJODXK9nr8H0vrw8O+W4/gL0OL16VG843PYoCN7Z3QnbJeVwpMhxz1YwY7a6fBhtiNNTfZbBJG402TxFe0fApfx3w1QFcetKoyXulJ0+41JdfUf8Nl+PQYbEKyuvvqCtneLRdC49f+GPXkuu8AEekSwTSg/sp+H8gFyejKYvYmFV0Dk56r5CxAYb3LNHCJhe5IAwnrqLMwk69RbxOYCk2KYVcSFLSRjNawbAoGd+Xyxge1FtQLvncaOH/lXS6Xw40MXnm6lDsAAAAAElFTkSuQmCC
 // @author           JustinS83
-// @include          https://www.waze.com/*user/editor*
-// @include          https://beta.waze.com/*user/editor*
-// require           https://code.jquery.com/ui/1.12.1/jquery-ui.js
-// @contributionURL  https://github.com/WazeDev/Thank-The-Authors
+// @match            *://*.waze.com/*user/editor*
+// @require          https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js
 // @run-at           document-start
 // ==/UserScript==
 
@@ -19,7 +17,6 @@
 /* global _ */
 /* global WazeWrap */
 /* global require */
-/* eslint curly: ["warn", "multi-or-nest"] */
 
 (function() {
     'use strict';
@@ -36,20 +33,21 @@
 
     function getApiUrlUserProfile(username, env) {
         let apiEnv = '';
-        if (env != 'na')
+        if (env != 'na') {
             apiEnv = env + '-';
+        }
         return `https://${window.location.host}/${apiEnv}Descartes/app/UserProfile/Profile?username=${username}`;
     }
 
     async function bootstrap(tries = 1) {
-        console.log(tries);
-        if (typeof W !== 'undefined' && W.EditorProfile && $){
+        if (typeof W !== 'undefined' && typeof W.EditorProfile.data !== 'undefined' && $){
             await delay(2000);
             init();
         }
 
-        else if (tries < 1000)
+        else if (tries < 1000) {
             setTimeout(function () {bootstrap(tries++);}, 200);
+        }
     }
 
     bootstrap();
@@ -67,8 +65,9 @@
             request.open('GET', apiUrl, false); // 'false' makes the request synchronous
             request.send(null);
 
-            if (request.status === 200)
+            if (request.status === 200) {
                 gon.data = JSON.parse(request.responseText);
+            }
             gon.data.lastEditEnv = settings.Environment;
         }
 
@@ -82,8 +81,9 @@
         $.get('https://www.waze.com/forum/memberlist.php?username=' + W.EditorProfile.data.username, function(forumResult){
             var re = 0;
             var matches = forumResult.match(/<a href=".*?"\s*?title="Search user’s posts">(\d+)<\/a>/);
-            if(matches && matches.length > 0)
+            if(matches && matches.length > 0) {
                 re = matches[1];
+            }
             var WazeVal = $('.posts').parent().next()[0].innerHTML.trim();
             var userForumID = forumResult.match(/<a href="\.\/memberlist\.php\?mode=viewprofile&amp;u=(\d+)"/);
             if(userForumID != null){
@@ -100,6 +100,10 @@
 
                 $('#header > div > div.user-info > div > div.user-highlights').prepend('<a href="https://www.waze.com/forum/memberlist.php?mode=viewprofile&u=' + userForumID +'" target="_blank" style="margin-right:5px;" id="forumProfile" style="float: right;"><button class="s-modern-button s-modern" style="float: right;"><i class="fa fa-user"></i><span>Forum Profile</span></button></a>');
 
+                // Additional "Load more" at the top of the list
+                $('#recent-edits > div > div > div > div.recent-edits-list > div > div.recent-edits-list-header').after('<div class="recent-edits-load-more"> <button class="s-button s-button--mercury "> Load More </button> </div>');
+                var scrollarea = document.querySelector('#recent-edits .recent-edits-list .recent-edits-scrollable');
+                scrollarea.style.height = '492px';
             }
         });
 
@@ -117,10 +121,10 @@
         initEnvironmentChooser();
 
         $('.user-stats-value').each(function(num){
-            debugger;
             let num1 = Number($(this).text());
-            if(!isNaN(num1))
+            if(!isNaN(num1)) {
                 $(this).text(Number(num1).toLocaleString());
+            }
         })
 
         $('.type-content__count > h3').each(function(num){
@@ -161,8 +165,9 @@
         select.options.add( new Option("IL","il") );
 
         for (var i = 0; i < select.options.length; i++) {
-            if (select.options[i].value == settings.Environment)
+            if (select.options[i].value == settings.Environment) {
                 select.options[i].selected = true;
+            }
         }
 
         frag.appendChild(select);
@@ -229,10 +234,12 @@
             var observer = new MutationObserver(function(mutations) {
                 mutations.forEach(function(mutation) {
                     if ($(mutation.target).hasClass('leaflet-map-pane') && (mutation.attributeName === "class" || mutation.attributeName === "style")){
-                        if(mutation.attributeName === "class" && mutation.target.classList.length == 1) //zoom has ended, we can redraw our labels
+                        if(mutation.attributeName === "class" && mutation.target.classList.length == 1) {//zoom has ended, we can redraw our labels
                             setTimeout(AddLabelsToAreas, 200);
-                        else if(mutation.attributeName === "style") //panning the map
+                        }
+                        else if(mutation.attributeName === "style") { //panning the map
                             setTimeout(AddLabelsToAreas, 200);
+                        }
                     }
                 });
             });
@@ -241,10 +248,12 @@
             AddLabelsToAreas();
 
             $('#userMA').click(function(){
-                if($('#wpeWKT').css('visibility') === 'visible')
+                if($('#wpeWKT').css('visibility') === 'visible') {
                     $('#wpeWKT').css({'visibility': 'hidden'});
-                else
+                }
+                else {
                     $('#wpeWKT').css({'visibility': 'visible'});
+                }
             });
 
             var result = buildWKTArray(naMA);
@@ -322,10 +331,11 @@
             });
 
             $('#wpeClose').click(function(){
-                if($('#wpeWKT').css('visibility') === 'visible')
+                if($('#wpeWKT').css('visibility') === 'visible') {
                     $('#wpeWKT').css({'visibility': 'hidden'});
-                else
+                } else {
                     $('#wpeWKT').css({'visibility': 'visible'});
+                }
             });
         }
     }
@@ -394,14 +404,16 @@
         $('.editing-activity').css({"width":"1010px"}); //With adding the Avg and Tot rows we have to widen the div a little so it doesn't wrap one of the columns
 
         let currWeekday = new Date().getDay();
-        if(currWeekday === 0)
+        if(currWeekday === 0) {
             currWeekday = 7;
+        }
         let localEditActivity = [].concat(W.EditorProfile.data.editingActivity);
         let weekEditsArr = localEditActivity.splice(-currWeekday);
         let weekEditsCount = weekEditsArr.reduce(reducer);
         var iteratorStart = 13;
-        if(currWeekday === 7)
+        if(currWeekday === 7) {
             iteratorStart = 12;
+        }
         $(`.weeks div:nth-child(${iteratorStart+1}) .week`).append(`<div class="day" style="font-size:10px; height:10px; text-align:center; margin-top:-5px;" title="Average edits per day for this week">${Math.round(weekEditsCount/currWeekday * 100) / 100}</div><div style="font-size:10px; height:10px; text-align:center;" title="Total edits for this week">${weekEditsCount}</div>`);
         for(let i=iteratorStart; i>0; i--){
             weekEditsArr = localEditActivity.splice(-7);
@@ -416,8 +428,9 @@
         for(let i=0; i<wkts.length; i++){
             html +=`<button id="wpe${server}AreaButton${i}" class="s-button s-button--mercury " style="margin-bottom:5px;">Area ${i+1}</button><br>`;
         }
-        if(wkts.length > 1)
+        if(wkts.length > 1) {
             html +=`<button id="wpe${server}CombinedAreaButton" class="s-button s-button--mercury " style="margin-bottom:5px;">Combined</button><br>`;
+        }
         return html;
     }
 
@@ -426,8 +439,9 @@
         let combined = "";
         let wktArr = [];
         for(let i=0; i<wktObj.managedAreas.length; i++){
-            if(i>0)
+            if(i>0) {
                 combined += ",";
+            }
             wkt = "";
             combined += "(";
             for(let j=0; j<wktObj.managedAreas[i].coordinates.length; j++){
@@ -452,11 +466,11 @@
             wkt = `POLYGON${wkt}`;
             wktArr.push(wkt);
         }
-        if(wktObj.managedAreas.length > 1)
-            combined = `MULTIPOLYGON(${combined})` ;
-        else
+        if(wktObj.managedAreas.length > 1) {
+            combined = `MULTIPOLYGON(${combined})`;
+        } else {
             combined = `POLYGON${combined}`;
-
+        }
         return {wktArr: wktArr, combinedWKT: combined};
     }
 
@@ -495,8 +509,9 @@
         };
         settings = loadedSettings ? loadedSettings : defaultSettings;
         for (var prop in defaultSettings) {
-            if (!settings.hasOwnProperty(prop))
+            if (!settings.hasOwnProperty(prop)) {
                 settings[prop] = defaultSettings[prop];
+            }
         }
     }
 
